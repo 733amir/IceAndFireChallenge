@@ -67,7 +67,7 @@ are not all safe."""
             # TODO Choose which one, don't use random
             self.__world.move_army(node, choice(nodes_with_lowest_need), node.army_count)
 
-    def __decision_for_edge_nodes(self, edge_nodes):
+    def __decision_for_edge_nodes(self, edge_nodes): # Added by Geamny
         """If the node is safe (no enemy around it) send all power to empty neighbour node with highest need.
 If the node is not safe send all power to the enemy that the node can kill."""
         for node in edge_nodes:
