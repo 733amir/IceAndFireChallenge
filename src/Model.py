@@ -6,6 +6,11 @@ import time
 class Graph:
     def __init__(self, nodes):
         self.nodes = nodes
+    def __repr__(self): # Added by Geamny
+        return "Graph: " + str(self.nodes)
+    def __str__(self): # Added by Geamny
+        return self.__repr__()
+
 
 class Node:
     def __init__(self, index):
@@ -13,6 +18,8 @@ class Node:
         self.owner = -1
         self.army_count = 0
         self.neighbours = []
+        # Actually `need` is the distance to the enemy nodes
+        self.need = 0 # Added by Geamny
 
     def set_neighbours(self, neighbours):
         self.neighbours = neighbours
@@ -25,6 +32,18 @@ class Node:
 
     def set_index(self, index):
         self.index = index
+
+    def __hash__(self): # Added by Geamny
+        return self.index
+
+    def __eq__(self, other): # Added by Geamny
+        return self.index == other.index
+
+    def __repr__(self): # Added by Geamny
+        return "N[I: {}, O: {}, P: {}, N: {}]".format(self.index, self.owner, self.army_count, self.need)
+
+    def __str__(self): # Added by Geamny
+        return self.__repr__()
 
 
 class World:
