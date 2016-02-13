@@ -1,5 +1,4 @@
 import os
-import struct
 
 __author__ = 'pezzati'
 
@@ -10,7 +9,6 @@ from queue import Queue
 
 
 class Controller():
-
     def __init__(self):
         self.sending_flag = True
         self.conf = {}
@@ -38,6 +36,7 @@ class Controller():
                     'args': [{'type': event.type, 'args': event.args}]
                 }
                 self.network.send(message)
+
         Thread(target=run, daemon=True).start()
 
     def terminate(self):
@@ -68,6 +67,7 @@ class Controller():
             self.client.do_turn(self.world)
 
         Thread(target=run, daemon=True).start()
+
 
 c = Controller()
 c.start()
