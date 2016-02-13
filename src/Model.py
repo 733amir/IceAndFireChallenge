@@ -88,7 +88,7 @@ class World:
             nodes.append(Node(i))
 
         for i in range(len(adj_list_init)):
-            #neighbours_int = adj_list_init[i]
+            # neighbours_int = adj_list_init[i]
             neighbours = []
             for j in adj_list_init[i]:
                 neighbours.append(nodes[j])
@@ -105,7 +105,7 @@ class World:
         self.update_nodes_list()
 
     def handle_turn_message(self, msg):
-        self.turn_start_time = int(round(time.time()*1000))
+        self.turn_start_time = int(round(time.time() * 1000))
         self.turn_number = int(msg[Constants.KEY_ARGS][0])
 
         graph_diff = msg[Constants.KEY_ARGS][1]
@@ -118,19 +118,19 @@ class World:
 
     def update_nodes_list(self):
         # dummies! :))
-        nodes_list = [[],[],[]]
+        nodes_list = [[], [], []]
         for n in self.map.nodes:
             nodes_list[n.owner + 1].append(n)
 
-        #for i in range(len(self.nodes)):
-        #    self.nodes[i] = nodes_list[i]
+            # for i in range(len(self.nodes)):
+            #    self.nodes[i] = nodes_list[i]
             #print(nodes_list[i], file=sys.stderr)
         self.my_nodes = nodes_list[self.my_id + 1]
         self.opponent_nodes = nodes_list[2 - self.my_id]
         self.free_nodes = nodes_list[0]
 
     def get_turn_time_passed(self):
-        return int(round(time.time()*1000)) - self.turn_start_time
+        return int(round(time.time() * 1000)) - self.turn_start_time
 
     def get_turn_remaining_time(self):
         return self.turn_timeout - self.get_turn_time_passed()
@@ -152,11 +152,11 @@ class Event:
     def add_arg(self, arg):
         self.args.append(arg)
 
-    #def to_message(self):
-    #    return {
-    #        'name': Event.EVENT,
-    #        'args': [{'type': self.type, 'args': self.args}]
-    #    }
+        # def to_message(self):
+        #    return {
+        #        'name': Event.EVENT,
+        #        'args': [{'type': self.type, 'args': self.args}]
+        #    }
 
 
 class Constants:
