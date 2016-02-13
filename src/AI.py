@@ -1,4 +1,4 @@
-__author__ = 'AmirHS'
+__author__ = 'KheiliBaShakhsiati*3'
 
 # List of works we should do in code
 # TODO Just attack if the map is small (categorize all nodes in inner category)
@@ -9,7 +9,7 @@ __author__ = 'AmirHS'
 
 from random import randint, choice
 
-class AI():
+class AI:
     def __set_all_need(self): # Added by Geamny
         """Calculate and set `need` attribute of node objects."""
         # Set `need` to `0` for all enemy nodes
