@@ -8,6 +8,7 @@ __author__ = 'KheiliBaShakhsiati*3'
 # TODO Build a list of adjacent enemies and calculate the minimum power needed to win the fight
 
 from random import randint, choice
+from queue import Queue
 
 class AI:
     def __set_all_need(self): # Added by Geamny
@@ -91,19 +92,37 @@ If the node is not safe send all power to the enemy that the node can kill."""
                     elif nodes_with_highest_need[0].need == empty_neighbour.need:
                         nodes_with_highest_need.append(empty_neighbour)
                 # Prevent two edge nodes sending their power to one place
-                unique_node = [i for i in nodes_with_highest_need if i not in self.__under_dicover_nodes]
+                unique_node = [i for i in nodes_with_highest_need if i not in self.__under_discover_nodes]
                 # If all edges with highest need are under discover,
                 # we select randomly from all empty edges around
                 if len(unique_node) == 0:
-                    unique_node = [i for i in empty_neighbours if i not in self.__under_dicover_nodes and i not in nodes_with_highest_need]
+                    unique_node = [i for i in empty_neighbours if i not in self.__under_discover_nodes and i not in nodes_with_highest_need]
                 if len(unique_node) == 0:
-                    unique_node = [i for i in empty_neighbours if i not in self.__under_dicover_nodes]
+                    unique_node = [i for i in empty_neighbours if i not in self.__under_discover_nodes]
                 if len(unique_node) == 0:
                     unique_node = nodes_with_highest_need
                 # TODO Choose which one, don't use random
                 going_to_be_discovered = choice(unique_node)
-                self.__under_dicover_nodes.append(going_to_be_discovered)
-                self.__world.move_army(node, going_to_be_discovered, node.army_count)
+                self.__under_discover_nodes.append(going_to_be_discovered)
+
+                q = Queue()
+                q.put(going_to_be_discovered)
+                visited = {node}
+                while not q.empty():
+                    current_node = q.get()
+                    if current_node.owner == int(not self.__world.my_id):
+                        break
+                    for neighbour in current_node.neighbours:
+                        if neighbour not in visited:
+                            visited.add(neighbour)
+                            q.put(neighbour)
+
+                if q.empty(): # No enemy found
+                    # send 1 power just to occupy nodes
+                    self.__world.move_army(node, going_to_be_discovered, 1)
+                else:
+                    self.__world.move_army(node, going_to_be_discovered, node.army_count)
+
             # Otherwise find most powerful enemy that we can attack and kill (lowest difference power)
             else:
                 # TODO Find most powerful enemy that we can attack and kill (lowest difference power)
@@ -116,7 +135,8 @@ If the node is not safe send all power to the enemy that the node can kill."""
         self.__world = world
         self.__inner_nodes = []
         self.__edge_nodes = []
-        self.__under_dicover_nodes = [] # To prevent edge nodes sending powers to 1 place.
+        self.__under_discover_nodes = [] # To prevent edge nodes sending powers to 1 place.
+        self.__under_attack_nodes = [] # To decide for best attack
 
         ## Function calls for initializing
         self.__set_all_need()
