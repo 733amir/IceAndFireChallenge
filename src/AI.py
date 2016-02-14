@@ -4,7 +4,6 @@ __author__ = 'KheiliBaShakhsiati*3'
 # TODO Just attack if the map is small (categorize all nodes in inner category)
 # TODO How to and When should we attack? In straight line or all together (categorize all nodes in inner category)?
 # TODO Define a way to transfer power of one edge node to another edge node
-# TODO If at the of path that we are going to discover, is no enemy, don't send all power, just send 1 power.
 # TODO Build a list of adjacent enemies and calculate the minimum power needed to win the fight
 
 from random import randint, choice
@@ -105,6 +104,7 @@ If the node is not safe send all power to the enemy that the node can kill."""
                 going_to_be_discovered = choice(unique_node)
                 self.__under_discover_nodes.append(going_to_be_discovered)
 
+                # BFS to find enemies
                 q = Queue()
                 q.put(going_to_be_discovered)
                 visited = {node}
