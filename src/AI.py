@@ -1,11 +1,8 @@
 __author__ = 'KheiliBaShakhsiati*3'
 
 # List of works we should do in code
-# TODO Just attack if the map is small (categorize all nodes in inner category)
 # TODO How to and When should we attack? In straight line or all together (categorize all nodes in inner category)?
 # TODO Define a way to transfer power of one edge node to another edge node
-# TODO If at the of path that we are going to discover, is no enemy, don't send all power, just send 1 power.
-# TODO Build a list of adjacent enemies and calculate the minimum power needed to win the fight
 
 from random import randint, choice
 from queue import Queue
@@ -139,6 +136,7 @@ If the node is not safe send all power to the enemy that the node can kill."""
 
             # Otherwise find most powerful enemy that we can attack and kill (lowest difference power)
             else:
+                # TODO Build a list of adjacent enemies and calculate the minimum power needed to win the fight
                 # TODO Find most powerful enemy that we can attack and kill (lowest difference power)
                 # TODO To attack send 1 + power of enemy node + (all power of enemy adjacent to that enemy node) / 2
                 # TODO Choose which one, don't use random
