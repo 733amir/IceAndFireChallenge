@@ -1,10 +1,8 @@
 __author__ = 'KheiliBaShakhsiati*3'
 
 # List of works we should do in code
-# TODO Just attack if the map is small (categorize all nodes in inner category)
 # TODO How to and When should we attack? In straight line or all together (categorize all nodes in inner category)?
 # TODO Define a way to transfer power of one edge node to another edge node
-# TODO Build a list of adjacent enemies and calculate the minimum power needed to win the fight
 
 from random import randint, choice
 from queue import Queue
@@ -139,17 +137,20 @@ If the node is not safe send all power to the enemy that the node can kill."""
 
             # Otherwise find most powerful enemy that we can attack and kill (lowest difference power)
             else:
+                # TODO Build a list of adjacent enemies and calculate the minimum power needed to win the fight
                 # TODO Find most powerful enemy that we can attack and kill (lowest difference power)
                 # TODO To attack send 1 + power of enemy node + (all power of enemy adjacent to that enemy node) / 2
                 # TODO Choose which one, don't use random
                 self.__world.move_army(node, choice(enemy_neighbours), node.army_count)
 
     def __choose_attacker(self): # Added by Geamny
-        least_need_node = None
+        least_need_nodes = []
         for edge_node in self.__edge_nodes:
-            if least_need_node is None or least_need_node.need > edge_node.need:
-                least_need_node = edge_node
-        return least_need_node
+            if len(least_need_nodes) == 0 or least_need_nodes[0].need == edge_node.need:
+                least_need_nodes.append(edge_node)
+            elif least_need_nodes[0] > edge_node.need:
+                least_need_nodes = [edge_node]
+        return choice(least_need_nodes)
 
     def do_turn(self, world):
         # Set attributes of AI class
