@@ -145,11 +145,13 @@ If the node is not safe send all power to the enemy that the node can kill."""
                 self.__world.move_army(node, choice(enemy_neighbours), node.army_count)
 
     def __choose_attacker(self): # Added by Geamny
-        least_need_node = None
+        least_need_nodes = []
         for edge_node in self.__edge_nodes:
-            if least_need_node is None or least_need_node.need > edge_node.need:
-                least_need_node = edge_node
-        return least_need_node
+            if len(least_need_nodes) == 0 or least_need_nodes[0].need == edge_node.need:
+                least_need_nodes.append(edge_node)
+            elif least_need_nodes[0] > edge_node.need:
+                least_need_nodes = [edge_node]
+        return choice(least_need_nodes)
 
     def do_turn(self, world):
         # Set attributes of AI class
