@@ -3,6 +3,7 @@ __author__ = 'KheiliBaShakhsiati*3'
 # List of works we should do in code
 # TODO How to and When should we attack? In straight line or all together (categorize all nodes in inner category)?
 # TODO Define a way to transfer power of one edge node to another edge node
+# TODO Improve set need function, find parameters and constants
 
 from random import randint, choice
 from queue import Queue
@@ -10,7 +11,7 @@ from queue import Queue
 class AI:
     def __init__(self):
         # Constants
-        self.__ATTACKER_NODE_CHOOSE_TRUN = 0
+        self.__ATTACKER_NODE_CHOOSE_TURN = 0
         # One attacker to distract enemy, One attacker to kill enemy in the beginning, One attacker to make spread faster
         self.__attacker_node = None
 
@@ -169,8 +170,7 @@ If the node is not safe send all power to the enemy that the node can kill."""
         self.__decision_for_edge_nodes()
 
         ### # Attacker strategy
-        if self.__world.turn_number == self.__ATTACKER_NODE_CHOOSE_TRUN:
-            print('Attacker choosed at %d' % self.__world.turn_number)
+        if self.__world.turn_number == self.__ATTACKER_NODE_CHOOSE_TURN:
             self.__attacker_node = self.__choose_attacker()
         elif not self.__attacker_node is None and self.__attacker_node.owner != self.__world.my_id:
             self.__attacker_node = None
