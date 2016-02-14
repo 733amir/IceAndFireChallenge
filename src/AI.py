@@ -10,6 +10,12 @@ from random import randint, choice
 from queue import Queue
 
 class AI:
+    def __init__(self):
+        # Constants
+        self.__ATTACKER_NODE_CHOOSE_TRUN = 0
+        # One attacker to distract enemy, One attacker to kill enemy in the beginning, One attacker to make spread faster
+        self.__attacker_node = None
+
     def __set_all_need(self): # Added by Geamny
         """Calculate and set `need` attribute of node objects."""
         # Set `need` to `0` for all enemy nodes
@@ -51,8 +57,10 @@ are not all safe."""
                 edge.append(node)
         return (inner, edge)
 
-    def __decision_for_inner_nodes(self, inner_nodes): # Added by Geamny
+    def __decision_for_inner_nodes(self, inner_nodes=None): # Added by Geamny
         """Sending all the power of a node to its most desperate neighbour."""
+        if inner_nodes is None:
+            inner_nodes = self.__inner_nodes
         for node in inner_nodes:
             nodes_with_lowest_need = [node] # Actually with highest need for power
             for neighbour in node.neighbours:
@@ -66,11 +74,17 @@ are not all safe."""
                     nodes_with_lowest_need.append(neighbour)
             # Choose one of neighbours of `my_node` with lowest need and send all power to that node
             # TODO Choose which one, don't use random
-            self.__world.move_army(node, choice(nodes_with_lowest_need), node.army_count)
+            going_to_be_discovered = choice(nodes_with_lowest_need)
+            self.__world.move_army(node, going_to_be_discovered, node.army_count)
+            # TODO Check indices instead of obejcts (maybe)
+            if self.__attacker_node is node:
+                self.__attacker_node = going_to_be_discovered
 
-    def __decision_for_edge_nodes(self, edge_nodes): # Added by Geamny
+    def __decision_for_edge_nodes(self, edge_nodes=None): # Added by Geamny
         """If the node is safe (no enemy around it) send all power to empty neighbour node with highest need.
 If the node is not safe send all power to the enemy that the node can kill."""
+        if edge_nodes is None:
+            edge_nodes = self.__edge_nodes
         for node in edge_nodes:
             empty_neighbours = []
             enemy_neighbours = []
@@ -130,6 +144,13 @@ If the node is not safe send all power to the enemy that the node can kill."""
                 # TODO Choose which one, don't use random
                 self.__world.move_army(node, choice(enemy_neighbours), node.army_count)
 
+    def __choose_attacker(self): # Added by Geamny
+        least_need_node = None
+        for edge_node in self.__edge_nodes:
+            if least_need_node is None or least_need_node.need > edge_node.need:
+                least_need_node = edge_node
+        return least_need_node
+
     def do_turn(self, world):
         # Set attributes of AI class
         self.__world = world
@@ -143,5 +164,14 @@ If the node is not safe send all power to the enemy that the node can kill."""
         self.__inner_nodes, self.__edge_nodes = self.__group_nodes()
 
         ### Decision making
-        self.__decision_for_inner_nodes(self.__inner_nodes)
-        self.__decision_for_edge_nodes(self.__edge_nodes)
+        self.__decision_for_inner_nodes()
+        self.__decision_for_edge_nodes()
+
+        ### # Attacker strategy
+        if self.__world.turn_number == self.__ATTACKER_NODE_CHOOSE_TRUN:
+            print('Attacker choosed at %d' % self.__world.turn_number)
+            self.__attacker_node = self.__choose_attacker()
+        elif not self.__attacker_node is None and self.__attacker_node.owner != self.__world.my_id:
+            self.__attacker_node = None
+        if not self.__attacker_node is None:
+            self.__decision_for_inner_nodes([self.__attacker_node])
