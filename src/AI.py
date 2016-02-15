@@ -147,7 +147,7 @@ If the node is not safe send all power to the enemy that the node can kill."""
         for edge_node in self.__edge_nodes:
             if len(least_need_nodes) == 0 or least_need_nodes[0].need == edge_node.need:
                 least_need_nodes.append(edge_node)
-            elif least_need_nodes[0] > edge_node.need:
+            elif least_need_nodes[0].need > edge_node.need:
                 least_need_nodes = [edge_node]
         return choice(least_need_nodes)
 
