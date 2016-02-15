@@ -4,6 +4,7 @@ __author__ = 'KheiliBaShakhsiati*3'
 # TODO How to and When should we attack? In straight line or all together (categorize all nodes in inner category)?
 # TODO Define a way to transfer power of one edge node to another edge node
 # TODO Improve set need function, find parameters and constants
+# TODO Discover node with more adjacent safe nodes first
 
 from random import randint, choice
 from queue import Queue
