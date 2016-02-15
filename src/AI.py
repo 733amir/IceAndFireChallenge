@@ -83,6 +83,7 @@ are not all safe."""
     def __decision_for_edge_nodes(self, edge_nodes=None): # Added by Geamny
         """If the node is safe (no enemy around it) send all power to empty neighbour node with highest need.
 If the node is not safe send all power to the enemy that the node can kill."""
+        # If no argument for `edge_nodes` not passed, set it to `self.__edge_nodes`
         if edge_nodes is None:
             edge_nodes = self.__edge_nodes
         for node in edge_nodes:
