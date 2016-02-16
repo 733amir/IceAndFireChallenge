@@ -9,19 +9,34 @@ function check_last_command {
     fi
 }
 
-if [ $# -lt 1 ]; then
-    echo Usage: challenge path/to/opponent [path/to/map]
+if [ $# -lt 2 ]; then
+    echo Usage: './challenge.sh (cpp | java | py | manual) path/to/opponent [path/to/map]'
 fi
 
-if [ $# -eq 2 ]; then
-    export AICMap=$2
+if [ $# -eq 3 ]; then
+    export AICMap=$3
 fi
 
 java -jar server/flowsgameserver-v2.0.jar &
 server_pid=$!
 check_last_command Server
 read -p 'Press Enter to run clients...' wait
-$1 &
+
+case $1 in
+    cpp)
+        $2 &
+        ;;
+    java)
+        java -jar $2 &
+        ;;
+    py)
+        python $2 &
+        ;;
+    manual)
+        $2 &
+        ;;
+esac
+
 op_pid=$!
 check_last_command Opponent
 sleep 1

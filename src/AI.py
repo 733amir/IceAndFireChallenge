@@ -74,7 +74,12 @@ are not all safe."""
                     nodes_with_lowest_need.append(neighbour)
             # Choose one of neighbours of `my_node` with lowest need and send all power to that node
             # TODO Choose which one, don't use random
-            going_to_be_discovered = choice(nodes_with_lowest_need)
+            # going_to_be_discovered = choice(nodes_with_lowest_need)
+            going_to_be_discovered = nodes_with_lowest_need[0]
+            for i in nodes_with_lowest_need[1:]:
+                if i.army_count < going_to_be_discovered.army_count:
+                    going_to_be_discovered = i
+
             self.__world.move_army(node, going_to_be_discovered, node.army_count)
             # TODO Check indices instead of obejcts (maybe)
             if self.__attacker_node is node:
@@ -135,7 +140,12 @@ If the node is not safe send all power to the enemy that the node can kill."""
                     # send 1 power just to occupy nodes
                     self.__world.move_army(node, going_to_be_discovered, 1)
                 else:
-                    self.__world.move_army(node, going_to_be_discovered, node.army_count)
+                    if going_to_be_discovered.need >= node.need:
+                        self.__world.move_army(node, going_to_be_discovered, 1)
+                    elif going_to_be_discovered.need < 2:
+                        self.__world.move_army(node, going_to_be_discovered, node.army_count)
+                    else:
+                        self.__world.move_army(node, going_to_be_discovered, node.army_count // 2 + 1)
 
             # Otherwise find most powerful enemy that we can attack and kill (lowest difference power)
             else:
@@ -143,7 +153,11 @@ If the node is not safe send all power to the enemy that the node can kill."""
                 # TODO Find most powerful enemy that we can attack and kill (lowest difference power)
                 # TODO To attack send 1 + power of enemy node + (all power of enemy adjacent to that enemy node) / 2
                 # TODO Choose which one, don't use random
-                self.__world.move_army(node, choice(enemy_neighbours), node.army_count)
+                to_attack = enemy_neighbours[0]
+                for i in enemy_neighbours[1:]:
+                    if i.army_count < to_attack.army_count:
+                        to_attack = i
+                self.__world.move_army(node, to_attack, node.army_count)
 
     def __choose_attacker(self): # Added by Geamny
         least_need_nodes = []
