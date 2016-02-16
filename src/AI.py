@@ -18,7 +18,7 @@ class AI:
 
     def __set_all_need(self): # Added by Geamny
         """Calculate and set `need` attribute of node objects."""
-        # Set `need` to `0` for all enemy nodes
+        # Set `need` for all enemy nodes
         for node in self.__world.opponent_nodes:
             node.need = -node.army_count
         # Set need for any node with the shortest distance with enemy nodes
