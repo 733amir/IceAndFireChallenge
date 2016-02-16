@@ -16,6 +16,32 @@ class AI:
         # One attacker to distract enemy, One attacker to kill enemy in the beginning, One attacker to make spread faster
         self.__attacker_node = None
 
+
+
+    def __attacking_power(self, dest):
+        DEST_SUPPORT = 0.125
+        average_power = [9, 25, 50]
+        return average_power[dest.army_count] + DEST_SUPPORT * sum([average_power[i.army_count] for i in dest.neighbours if i.owner == dest.owner])
+
+
+    def __power_difference(self, src, dest):
+        """
+        Calculates power of source node and destination node and returns the difference
+        :param src: Our node
+        :param dest: Enemy node
+        :return: Source power - Destination power
+        """
+        # Constants
+        SRC_SUPPORT = 0.05
+        DEST_SUPPORT = 0.125
+        average_power = [5, 20, 45]
+        # Calculate powers of both sides
+        source_power = src.army_count + SRC_SUPPORT * sum([i.army_count for i in src.neighbours if i.owner == self.__world.my_id])
+        dest_power = average_power[dest.army_count] + DEST_SUPPORT * sum([average_power[i.army_count] for i in dest.neighbours if i.owner == 1 - self.__world.my_id])
+        # Return
+        return source_power - dest_power
+
+
     def __set_all_need(self): # Added by Geamny
         """Calculate and set `need` attribute of node objects."""
         # Set `need` to `0` for all enemy nodes
@@ -41,6 +67,7 @@ class AI:
             current_nodes = next_nodes
             next_nodes = set()
 
+
     def __group_nodes(self): # Added by Geamny
         """Group nodes into inner nodes that all of their neighbours are safe and edge nodes that their neighbours
 are not all safe."""
@@ -56,6 +83,7 @@ are not all safe."""
             else:
                 edge.append(node)
         return (inner, edge)
+
 
     def __decision_for_inner_nodes(self, inner_nodes=None): # Added by Geamny
         """Sending all the power of a node to its most desperate neighbour."""
@@ -80,10 +108,14 @@ are not all safe."""
                 if i.army_count < going_to_be_discovered.army_count:
                     going_to_be_discovered = i
 
-            self.__world.move_army(node, going_to_be_discovered, node.army_count)
+            if self.__world.turn_number > self.__world.total_turns // 4:
+                self.__world.move_army(node, going_to_be_discovered, node.army_count * 3 // 4)
+            else:
+                self.__world.move_army(node, going_to_be_discovered, node.army_count)
             # TODO Check indices instead of obejcts (maybe)
             if self.__attacker_node is node:
                 self.__attacker_node = going_to_be_discovered
+
 
     def __decision_for_edge_nodes(self, edge_nodes=None): # Added by Geamny
         """If the node is safe (no enemy around it) send all power to empty neighbour node with highest need.
@@ -128,25 +160,28 @@ If the node is not safe send all power to the enemy that the node can kill."""
                 q = Queue()
                 q.put(going_to_be_discovered)
                 visited = {node}
+                found_enemy = False
                 while not q.empty():
                     current_node = q.get()
                     if current_node.owner == int(not self.__world.my_id):
+                        found_enemy = True
                         break
                     for neighbour in current_node.neighbours:
                         if neighbour not in visited:
                             visited.add(neighbour)
                             q.put(neighbour)
 
-                if q.empty(): # No enemy found
+                if not found_enemy: # No enemy found
                     # send 1 power just to occupy nodes
                     self.__world.move_army(node, going_to_be_discovered, 1)
                 else:
-                    if going_to_be_discovered.need >= node.need:
-                        self.__world.move_army(node, going_to_be_discovered, 1)
-                    elif going_to_be_discovered.need < 2:
-                        self.__world.move_army(node, going_to_be_discovered, node.army_count)
-                    else:
-                        self.__world.move_army(node, going_to_be_discovered, node.army_count // 2 + 1)
+                    # if going_to_be_discovered.need >= node.need:
+                    #     self.__world.move_army(node, going_to_be_discovered, 1)
+                    # elif going_to_be_discovered.need < 2:
+                    #     self.__world.move_army(node, going_to_be_discovered, node.army_count)
+                    # else:
+                    #     self.__world.move_army(node, going_to_be_discovered, node.army_count // 2 + 1)
+                    self.__world.move_army(node, going_to_be_discovered, node.army_count)
 
             # Otherwise find most powerful enemy that we can attack and kill (lowest difference power)
             else:
@@ -154,11 +189,16 @@ If the node is not safe send all power to the enemy that the node can kill."""
                 # TODO Find most powerful enemy that we can attack and kill (lowest difference power)
                 # TODO To attack send 1 + power of enemy node + (all power of enemy adjacent to that enemy node) / 2
                 # TODO Choose which one, don't use random
-                to_attack = enemy_neighbours[0]
-                for i in enemy_neighbours[1:]:
-                    if i.army_count < to_attack.army_count:
-                        to_attack = i
-                self.__world.move_army(node, to_attack, node.army_count)
+                power_difference_with_enemy_neighbours = [self.__power_difference(node, i) for i in enemy_neighbours]
+                max_difference = max(power_difference_with_enemy_neighbours)
+                to_attack = enemy_neighbours[power_difference_with_enemy_neighbours.index(max_difference)]
+                if max_difference > 0:
+                    power = min(node.army_count, int(self.__attacking_power(to_attack)))
+                    # print(self.__world.turn_number, node, to_attack, max_difference, power)
+                    self.__world.move_army(node, to_attack, power)
+                else:
+                    node.need -= 1 # stay and wait for backup
+
 
     def __choose_attacker(self): # Added by Geamny
         least_need_nodes = []
@@ -168,6 +208,7 @@ If the node is not safe send all power to the enemy that the node can kill."""
             elif least_need_nodes[0].need > edge_node.need:
                 least_need_nodes = [edge_node]
         return choice(least_need_nodes)
+
 
     def do_turn(self, world):
         # Set attributes of AI class
@@ -182,8 +223,8 @@ If the node is not safe send all power to the enemy that the node can kill."""
         self.__inner_nodes, self.__edge_nodes = self.__group_nodes()
 
         ### Decision making
-        self.__decision_for_inner_nodes()
         self.__decision_for_edge_nodes()
+        self.__decision_for_inner_nodes()
 
         ### # Attacker strategy
         if self.__world.turn_number == self.__ATTACKER_NODE_CHOOSE_TURN:

@@ -11,6 +11,7 @@ function check_last_command {
 
 if [ $# -lt 2 ]; then
     echo Usage: './challenge.sh (cpp | java | py | manual) path/to/opponent [path/to/map]'
+    exit
 fi
 
 if [ $# -eq 3 ]; then
