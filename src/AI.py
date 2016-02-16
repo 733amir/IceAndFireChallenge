@@ -12,7 +12,8 @@ from queue import Queue
 class AI:
     def __init__(self):
         # Constants
-        self.__ATTACKER_NODE_CHOOSE_TURN = 0
+        self.__ATTACKER_NODE_CHOOSE_TURN = -1 # Attacker disabled
+        self.__INNER_NODES_ENERGY_PASSING_RATIO = 3 / 4
         # One attacker to distract enemy, One attacker to kill enemy in the beginning, One attacker to make spread faster
         self.__attacker_node = None
 
@@ -56,26 +57,16 @@ are not all safe."""
         if inner_nodes is None:
             inner_nodes = self.__inner_nodes
         for node in inner_nodes:
-            nodes_with_lowest_need = [node] # Actually with highest need for power
-            for neighbour in node.neighbours:
-                # If `neighbour` have less need than all list, delete all items in list and put
-                # that `neighbour` instead. Why comparing just one item in the list? Because all
-                # items in the list have the same need.
-                if nodes_with_lowest_need[0].need > neighbour.need:
-                    nodes_with_lowest_need = [neighbour]
-                # If need of `neighbour` is equal to need of items, add `neighbour` to list
-                elif nodes_with_lowest_need[0].need == neighbour.need:
-                    nodes_with_lowest_need.append(neighbour)
-            # Choose one of neighbours of `my_node` with lowest need and send all power to that node
-            # TODO Choose which one, don't use random
-            # going_to_be_discovered = choice(nodes_with_lowest_need)
-            going_to_be_discovered = nodes_with_lowest_need[0]
-            for i in nodes_with_lowest_need[1:]:
-                if i.army_count < going_to_be_discovered.army_count:
-                    going_to_be_discovered = i
+            # maximum = max(node.neighbours, key=lambda node: node.need)
+            # nodes_with_highest_need = [i for i in node.neighbours if i.need == maximum]
+            nodes_with_lowest_need = sorted(node.neighbours, key=lambda i: i.need)
+            nodes_with_lowest_need = [i for i in nodes_with_lowest_need if i.need == nodes_with_lowest_need[0].need]
 
-            self.__world.move_army(node, going_to_be_discovered, node.army_count)
-            # TODO Check indices instead of obejcts (maybe)
+            # Choose one of neighbours of `node` with lowest need and send power to that node
+            going_to_be_discovered = sorted(nodes_with_lowest_need, key=lambda i: i.army_count)[0]
+            self.__world.move_army(node, going_to_be_discovered, int(node.army_count * self.__INNER_NODES_ENERGY_PASSING_RATIO) + 1)
+
+            # Update node of attacker
             if self.__attacker_node is node:
                 self.__attacker_node = going_to_be_discovered
 
