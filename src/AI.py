@@ -6,7 +6,7 @@ __author__ = 'KheiliBaShakhsiati*3'
 # TODO Improve set need function, find parameters and constants
 # TODO Discover node with more adjacent safe nodes first
 
-from random import randint, choice
+from random import choice
 from queue import Queue
 
 class AI:
@@ -20,26 +20,20 @@ class AI:
         """Calculate and set `need` attribute of node objects."""
         # Set `need` to `0` for all enemy nodes
         for node in self.__world.opponent_nodes:
-            node.need = 0
+            node.need = -node.army_count
         # Set need for any node with the shortest distance with enemy nodes
-        current_nodes = set(self.__world.opponent_nodes) # Last nodes that their `need` was set
-        next_nodes = set() # Nodes that their `need` is going to be set
-        all_nodes = set(self.__world.opponent_nodes) # Nodes that their `need` was set
+        current_nodes = sorted(self.__world.opponent_nodes, key=lambda node: node.need) # Last nodes that their `need` was set
+        next_nodes = [] # Nodes that their `need` is going to be set
         # Going throw all nodes until there is no node in `current_nodes`
         while len(current_nodes):
             # Finding all adjacent nodes to `current_nodes` that their `need` have not been set
             for node in current_nodes:
                 for neighbour in node.neighbours:
-                    if neighbour not in all_nodes:
-                        next_nodes.add(neighbour)
-                        all_nodes.add(neighbour)
-            # Finding `need` of `current_nodes` and set it to `next_nodes`
-            next_need = current_nodes.pop().need + 1
-            for next_node in next_nodes:
-                next_node.need = next_need
+                    if neighbour.need is None:
+                        next_nodes.append(neighbour)
+                        neighbour.need = node.need + 1
             # `next_nodes` become `current_nodes`
-            current_nodes = next_nodes
-            next_nodes = set()
+            current_nodes, next_nodes = next_nodes, []
 
     def __group_nodes(self): # Added by Geamny
         """Group nodes into inner nodes that all of their neighbours are safe and edge nodes that their neighbours
