@@ -41,7 +41,7 @@ esac
 op_pid=$!
 check_last_command Opponent
 sleep 1
-python src/Controller.py &
+python3 src/Controller.py &
 ai_pid=$!
 check_last_command AI
 

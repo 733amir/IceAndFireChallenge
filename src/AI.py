@@ -90,23 +90,10 @@ are not all safe."""
         if inner_nodes is None:
             inner_nodes = self.__inner_nodes
         for node in inner_nodes:
-            nodes_with_lowest_need = [node] # Actually with highest need for power
-            for neighbour in node.neighbours:
-                # If `neighbour` have less need than all list, delete all items in list and put
-                # that `neighbour` instead. Why comparing just one item in the list? Because all
-                # items in the list have the same need.
-                if nodes_with_lowest_need[0].need > neighbour.need:
-                    nodes_with_lowest_need = [neighbour]
-                # If need of `neighbour` is equal to need of items, add `neighbour` to list
-                elif nodes_with_lowest_need[0].need == neighbour.need:
-                    nodes_with_lowest_need.append(neighbour)
-            # Choose one of neighbours of `my_node` with lowest need and send all power to that node
-            # TODO Choose which one, don't use random
-            # going_to_be_discovered = choice(nodes_with_lowest_need)
-            going_to_be_discovered = nodes_with_lowest_need[0]
-            for i in nodes_with_lowest_need[1:]:
-                if i.army_count < going_to_be_discovered.army_count:
-                    going_to_be_discovered = i
+            _ = sorted(node.neighbours, key=lambda i: i.need)
+            __ = sorted([i for i in _ if i.need == _[0].need], key=lambda i: i.army_count)
+            nodes_with_lowest_need_and_power = [i for i in __ if i.army_count == __[0].army_count]
+            going_to_be_discovered = choice(nodes_with_lowest_need_and_power)
 
             if self.__world.turn_number > self.__world.total_turns // 4:
                 self.__world.move_army(node, going_to_be_discovered, node.army_count * 3 // 4)
