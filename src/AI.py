@@ -12,7 +12,7 @@ from queue import Queue
 class AI:
     def __init__(self):
         # Constants
-        self.__ATTACKER_NODE_CHOOSE_TURN = 0
+        self.__ATTACKER_NODE_CHOOSE_TURN = 0 # Attacker disabled
         # One attacker to distract enemy, One attacker to kill enemy in the beginning, One attacker to make spread faster
         self.__attacker_node = None
 
@@ -99,7 +99,8 @@ are not all safe."""
                 self.__world.move_army(node, going_to_be_discovered, node.army_count * 3 // 4)
             else:
                 self.__world.move_army(node, going_to_be_discovered, node.army_count)
-            # TODO Check indices instead of obejcts (maybe)
+
+            # Update status of attacker
             if self.__attacker_node is node:
                 self.__attacker_node = going_to_be_discovered
 
@@ -121,24 +122,24 @@ If the node is not safe send all power to the enemy that the node can kill."""
                     empty_neighbours.append(neighbour)
             # If there is no enemy around go to an empty node with highest need
             if len(enemy_neighbours) == 0:
-                nodes_with_highest_need = []
+                nodes_with_lowest_need = []
                 for empty_neighbour in empty_neighbours:
-                    if len(nodes_with_highest_need) == 0:
-                        nodes_with_highest_need = [empty_neighbour]
-                    elif nodes_with_highest_need[0].need < empty_neighbour.need:
-                        nodes_with_highest_need = [empty_neighbour]
-                    elif nodes_with_highest_need[0].need == empty_neighbour.need:
-                        nodes_with_highest_need.append(empty_neighbour)
+                    if len(nodes_with_lowest_need) == 0:
+                        nodes_with_lowest_need = [empty_neighbour]
+                    elif nodes_with_lowest_need[0].need > empty_neighbour.need:
+                        nodes_with_lowest_need = [empty_neighbour]
+                    elif nodes_with_lowest_need[0].need == empty_neighbour.need:
+                        nodes_with_lowest_need.append(empty_neighbour)
                 # Prevent two edge nodes sending their power to one place
-                unique_node = [i for i in nodes_with_highest_need if i not in self.__under_discover_nodes]
+                unique_node = [i for i in nodes_with_lowest_need if i not in self.__under_discover_nodes]
                 # If all edges with highest need are under discover,
                 # we select randomly from all empty edges around
                 if len(unique_node) == 0:
-                    unique_node = [i for i in empty_neighbours if i not in self.__under_discover_nodes and i not in nodes_with_highest_need]
+                    unique_node = [i for i in empty_neighbours if i not in self.__under_discover_nodes and i not in nodes_with_lowest_need]
                 if len(unique_node) == 0:
                     unique_node = [i for i in empty_neighbours if i not in self.__under_discover_nodes]
                 if len(unique_node) == 0:
-                    unique_node = nodes_with_highest_need
+                    unique_node = nodes_with_lowest_need
                 # TODO Choose which one, don't use random
                 going_to_be_discovered = choice(unique_node)
                 self.__under_discover_nodes.append(going_to_be_discovered)
