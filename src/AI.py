@@ -8,6 +8,7 @@ __author__ = 'KheiliBaShakhsiati*3'
 
 from random import choice
 
+
 class AI:
 
     def __init__(self):
@@ -112,7 +113,28 @@ are not all safe."""
             if len(enemy_neighbours): # There is enemy, Attack
                 self.__first_attack = True
 
-                self.__world.move_army(edge_node, choice(enemy_neighbours), edge_node.army_count)
+                # Find the best opportunity to attack to
+                power_difference_with_enemy_neighbours = [self.__power_difference(edge_node, i) for i in enemy_neighbours]
+                max_difference = max(power_difference_with_enemy_neighbours)
+                to_attack = enemy_neighbours[power_difference_with_enemy_neighbours.index(max_difference)]
+
+                if max_difference > 0:  # If the best opportunity is a good opportunity
+                    power = min(edge_node.army_count, int(self.__attacking_power(to_attack)))
+                    self.__world.move_army(edge_node, to_attack, power)
+                else:
+                    energy_level = [0, 11, 31]
+                    node_energy_level = 0
+                    for level in range(len(energy_level)):
+                        if energy_level[level] > edge_node.army_count:
+                            break
+                        node_energy_level = level
+
+                    power = edge_node.army_count - energy_level[node_energy_level]
+                    if empty_neighbours:
+                        self.__world.move_army(edge_node, choice(empty_neighbours), power)
+                    elif len(enemy_neighbours) == len(edge_node.neighbours):
+                        self.__world.move_army(edge_node, to_attack, edge_node.army_count)
+                    edge_node.need = -1 # stay and wait for backup
 
             else: # No enemy, Discover
                 # TODO Don't send all power for discovery
