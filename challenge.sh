@@ -25,16 +25,16 @@ read -p 'Press Enter to run clients...' wait
 
 case $1 in
     cpp)
-        "$2" &
+        "$2" > /dev/null &
         ;;
     java)
-        java -jar "$2" &
+        java -jar "$2" > /dev/null &
         ;;
     py)
-        python "$2" &
+        python "$2" > /dev/null &
         ;;
     manual)
-        "$2" &
+        "$2" > /dev/null &
         ;;
 esac
 
