@@ -12,7 +12,7 @@ from queue import Queue
 class AI:
     def __init__(self):
         # Constants
-        self.__ATTACKER_NODE_CHOOSE_TURN = -1 # Attacker disabled
+        self.__ATTACKER_NODE_CHOOSE_TURN = 1 # Attacker disabled
         self.__INNER_NODES_ENERGY_PASSING_RATIO = 3 / 4
         # One attacker to distract enemy, One attacker to kill enemy in the beginning, One attacker to make spread faster
         self.__attacker_node = None
@@ -57,12 +57,11 @@ are not all safe."""
         if inner_nodes is None:
             inner_nodes = self.__inner_nodes
         for node in inner_nodes:
-            # maximum = max(node.neighbours, key=lambda node: node.need)
-            # nodes_with_highest_need = [i for i in node.neighbours if i.need == maximum]
-            nodes_with_lowest_need = sorted(node.neighbours, key=lambda i: i.need)
-            nodes_with_lowest_need = [i for i in nodes_with_lowest_need if i.need == nodes_with_lowest_need[0].need]
+            # Find nodes with lowest need between neighbours
+            _ = sorted(node.neighbours, key=lambda i: i.need)
+            nodes_with_lowest_need = [i for i in _ if i.need == _[0].need]
 
-            # Choose one of neighbours of `node` with lowest need and send power to that node
+            # Choose one of neighbours with lowest need and send power to that node
             going_to_be_discovered = sorted(nodes_with_lowest_need, key=lambda i: i.army_count)[0]
             self.__world.move_army(node, going_to_be_discovered, int(node.army_count * self.__INNER_NODES_ENERGY_PASSING_RATIO) + 1)
 
@@ -109,6 +108,11 @@ If the node is not safe send all power to the enemy that the node can kill."""
                 going_to_be_discovered = choice(unique_node)
                 self.__under_discover_nodes.append(going_to_be_discovered)
 
+                # Send power to node with more safe neighbours
+                # empty_neighbours = [i for i in empty_neighbours if i not in self.__under_discover_nodes]
+                # empty_neighbours = sorted(empty_neighbours, key=lambda i: len([j for j in i.neighbours if i.owner == self.__world.my_id]), reverse=True)
+                # going_to_be_discovered = empty_neighbours[0]
+
                 # BFS to find enemies
                 q = Queue()
                 q.put(going_to_be_discovered)
@@ -145,6 +149,20 @@ If the node is not safe send all power to the enemy that the node can kill."""
                         to_attack = i
                 self.__world.move_army(node, to_attack, node.army_count)
 
+    def __decision_for_attacker(self):
+        _ = sorted(self.__attacker_node.neighbours, key=lambda i: i.need)
+        lowest_need = [i for i in _ if i.need == _[0].need]
+
+        to_select = []
+        for node in lowest_need:
+            good_neighbours_count = 0
+            for neighbour in node.neighbours:
+                if neighbour in self.__under_discover_nodes or neighbour.owner == self.__world.my_id:
+                    good_neighbours_count += 1
+            to_select.append((node, good_neighbours_count))
+
+        to_select = sorted(to_select, key=lambda i: i[1], reverse=True)
+
     def __choose_attacker(self): # Added by Geamny
         least_need_nodes = []
         for edge_node in self.__edge_nodes:
@@ -176,4 +194,4 @@ If the node is not safe send all power to the enemy that the node can kill."""
         elif not self.__attacker_node is None and self.__attacker_node.owner != self.__world.my_id:
             self.__attacker_node = None
         if not self.__attacker_node is None:
-            self.__decision_for_inner_nodes([self.__attacker_node])
+            self.__decision_for_attacker()
