@@ -7,6 +7,7 @@ __author__ = 'KheiliBaShakhsiati*3'
 # TODO Discover node with more adjacent safe nodes first
 
 from random import choice
+from queue import Queue
 
 
 class AI:
@@ -153,6 +154,22 @@ are not all safe."""
                 else: # Not all neighbours under discover
                     self.__under_discover_nodes.append(more_neighbours[0])
                     self.__world.move_army(edge_node, more_neighbours[0], edge_node.army_count)
+
+    def __enemy_is_there(self, node):
+        visited = {node}
+        q = Queue()
+        q.put(node)
+        found_enemy = False
+        while not q.empty():
+            cur_node = q.get()
+            if cur_node.owner == 1 - self.__world.my_id: # enemy found
+                found_enemy = True
+                break
+            for next_node in cur_node.neighbours:
+                if next_node not in visited:
+                    q.put(next_node)
+                    visited.add(next_node)
+        return found_enemy
 
     def do_turn(self, world):
         # Set attributes of AI class
