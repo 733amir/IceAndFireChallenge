@@ -13,7 +13,7 @@ from queue import Queue
 class AI:
     def __init__(self):
         # Constants
-        self.__
+        self.__HELP_VALUE = -5
         # Global variables
         self.__first_attack = False
 
@@ -89,7 +89,7 @@ are not all safe."""
             going_to_be_discovered = choice(nodes_with_lowest_need_and_power)
 
             if self.__first_attack:
-                self.__world.move_army(node, going_to_be_discovered, node.army_count * 9 // 10)
+                self.__world.move_army(node, going_to_be_discovered, node.army_count)
             else:
                 self.__world.move_army(node, going_to_be_discovered, node.army_count)
 
@@ -130,13 +130,14 @@ are not all safe."""
                         node_energy_level = level
 
                     # power = edge_node.army_count - energy_level[node_energy_level]
-                    # if empty_neighbours:  # Send some power to empty neighbour
-                    #     self.__world.move_army(edge_node, choice(empty_neighbours), power)
+                    if empty_neighbours:  # Send some power to empty neighbour
+                        self.__world.move_army(edge_node, choice(empty_neighbours), power)
                     # elif len(enemy_neighbours) == len(edge_node.neighbours):  # If all of the neighbours are enemies
                     #     # Send all of your power
                     #     self.__world.move_army(edge_node, to_attack, edge_node.army_count)
-                    self.__world.move_army(edge_node, to_attack, power)
-                    edge_node.need = -5  # Stay and wait for backup
+                    else:
+                        self.__world.move_army(edge_node, to_attack, power)
+                    edge_node.need = self.__HELP_VALUE  # Wait for backup
 
             else:  # No enemy, Discover
                 # TODO Don't send all power for discovery
@@ -145,9 +146,12 @@ are not all safe."""
                                                        i not in self.__under_discover_nodes]
 
                 # Sort empty neighbours by count of safe neighbours around it
-                more_neighbours = sorted(empty_neighbours_not_under_discover, key=lambda i: len(
+                more_neighbours = \
+                sorted(empty_neighbours_not_under_discover, key=lambda i: len(
                     [j for j in i.neighbours if j.owner == self.__world.my_id or j in self.__under_discover_nodes]),
-                                         reverse=True)
+                                         reverse=True) if edge_node.need > 100 else \
+                sorted(empty_neighbours_not_under_discover, key=lambda i: len(
+                    [j for j in i.neighbours if j.owner == -1]), reverse=True)
 
                 if not more_neighbours:  # All neighbours under discover
                     empty_neighbours_sorted_by_need = sorted(empty_neighbours, key=lambda i: i.need)
@@ -162,6 +166,7 @@ are not all safe."""
                         self.__world.move_army(edge_node, more_neighbours[0], 1)
                     else:
                         self.__world.move_army(edge_node, more_neighbours[0], edge_node.army_count)
+
 
     def __enemy_is_there(self, node, src_node=None):
         visited = {node}
@@ -181,6 +186,11 @@ are not all safe."""
                     visited.add(next_node)
         return found_enemy
 
+    def __reset(self):
+        for i in self.__world.my_nodes + self.__world.opponent_nodes + self.__world.free_nodes:
+            i.need = -10
+            i.attacked_power = 0
+
     def do_turn(self, world):
         # Set attributes of AI class
         self.__world = world
@@ -190,6 +200,7 @@ are not all safe."""
         self.__under_attack_nodes = []  # To decide for best attack
 
         ## Function calls for initializing
+        self.__reset()
         self.__set_all_need()
         self.__inner_nodes, self.__edge_nodes = self.__group_nodes()
 

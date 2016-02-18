@@ -20,6 +20,7 @@ class Node:
         self.neighbours = []
         # Actually `need` is the distance to the enemy nodes
         self.need = -10 # Added by Geamny
+        self.attacked_power = 0 # Added by Geamny
 
     def set_neighbours(self, neighbours):
         self.neighbours = neighbours
