@@ -13,12 +13,13 @@ from queue import Queue
 class AI:
     def __init__(self):
         # Constants
+        self.__
         # Global variables
         self.__first_attack = False
 
     def __attacking_power(self, dest):
         DEST_SUPPORT = 0.125
-        average_power = [9, 25, 50]
+        average_power = [10, 30, 50]
         return average_power[dest.army_count] + DEST_SUPPORT * sum(
             [average_power[i.army_count] for i in dest.neighbours if i.owner == dest.owner])
 
@@ -117,8 +118,8 @@ are not all safe."""
                 max_difference = max(power_difference_with_enemy_neighbours)
                 to_attack = enemy_neighbours[power_difference_with_enemy_neighbours.index(max_difference)]
 
+                power = min(edge_node.army_count, int(self.__attacking_power(to_attack)))
                 if max_difference > 0:  # If the best opportunity is a good opportunity
-                    power = min(edge_node.army_count, int(self.__attacking_power(to_attack)))
                     self.__world.move_army(edge_node, to_attack, power)
                 else:  # If even the best attacking opportunity is not good
                     energy_level = [0, 11, 31]
@@ -128,13 +129,14 @@ are not all safe."""
                             break
                         node_energy_level = level
 
-                    power = edge_node.army_count - energy_level[node_energy_level]
-                    if empty_neighbours:  # Send some power to empty neighbour
-                        self.__world.move_army(edge_node, choice(empty_neighbours), power)
-                    elif len(enemy_neighbours) == len(edge_node.neighbours):  # If all of the neighbours are enemies
-                        # Send all of your power
-                        self.__world.move_army(edge_node, to_attack, edge_node.army_count)
-                    edge_node.need = -1  # Stay and wait for backup
+                    # power = edge_node.army_count - energy_level[node_energy_level]
+                    # if empty_neighbours:  # Send some power to empty neighbour
+                    #     self.__world.move_army(edge_node, choice(empty_neighbours), power)
+                    # elif len(enemy_neighbours) == len(edge_node.neighbours):  # If all of the neighbours are enemies
+                    #     # Send all of your power
+                    #     self.__world.move_army(edge_node, to_attack, edge_node.army_count)
+                    self.__world.move_army(edge_node, to_attack, power)
+                    edge_node.need = -5  # Stay and wait for backup
 
             else:  # No enemy, Discover
                 # TODO Don't send all power for discovery
