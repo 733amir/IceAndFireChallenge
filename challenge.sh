@@ -18,7 +18,7 @@ if [ $# -eq 3 ]; then
     export AICMap=$3
 fi
 
-java -jar server/flowsgameserver-v2.0.jar &
+java -jar server/flowsgameserver-v2.0.jar --config=server/game.conf &
 server_pid=$!
 check_last_command Server
 read -p 'Press Enter to run clients...' wait
