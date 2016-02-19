@@ -33,7 +33,7 @@ class AI:
         # Constants
         SRC_SUPPORT = 0.05
         DEST_SUPPORT = 0.125
-        average_power = [7, 18, 50]
+        average_power = [5, 18, 50]
         # Calculate powers of both sides
         source_power = src.army_count + SRC_SUPPORT * sum(
             [i.army_count for i in src.neighbours if i.owner == self.__world.my_id])
@@ -137,7 +137,7 @@ are not all safe."""
                     #     self.__world.move_army(edge_node, to_attack, edge_node.army_count)
                     else:
                         self.__world.move_army(edge_node, to_attack, power)
-                    edge_node.need = self.__HELP_VALUE  # Wait for backup
+                    edge_node.need += self.__HELP_VALUE  # Wait for backup
 
             else:  # No enemy, Discover
                 # TODO Don't send all power for discovery
@@ -154,7 +154,7 @@ are not all safe."""
                     [j for j in i.neighbours if j.owner == -1]), reverse=True)
 
                 if not more_neighbours:  # All neighbours under discover
-                    empty_neighbours_sorted_by_need = sorted(empty_neighbours, key=lambda i: i.need)
+                    empty_neighbours_sorted_by_need = sorted(edge_node.neighbours, key=lambda i: i.need)
                     self.__under_discover_nodes.append(empty_neighbours_sorted_by_need[0])
                     self.__world.move_army(edge_node, empty_neighbours_sorted_by_need[0], edge_node.army_count)
 
@@ -181,7 +181,7 @@ are not all safe."""
                 found_enemy = True
                 break
             for next_node in cur_node.neighbours:
-                if next_node not in visited:
+                if next_node not in visited and next_node.owner != self.__world.my_id:
                     q.put(next_node)
                     visited.add(next_node)
         return found_enemy

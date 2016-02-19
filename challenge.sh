@@ -21,7 +21,13 @@ fi
 java -jar server/flowsgameserver-v2.0.jar --config=server/game.conf &
 server_pid=$!
 check_last_command Server
+
 read -p 'Press Enter to run clients...' wait
+
+python3 src/Controller.py &
+ai_pid=$!
+check_last_command AI
+sleep 1
 
 case $1 in
     cpp)
@@ -40,10 +46,6 @@ esac
 
 op_pid=$!
 check_last_command Opponent
-sleep 1
-python3 src/Controller.py &
-ai_pid=$!
-check_last_command AI
 
 while :; do
     kill -0 $server_pid &> /dev/null
