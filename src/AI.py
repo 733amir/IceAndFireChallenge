@@ -18,7 +18,7 @@ class AI:
         self.__first_attack = False
 
     def __attacking_power(self, dest):
-        DEST_SUPPORT = 0.125
+        DEST_SUPPORT = 0.15
         average_power = [10, 30, 50]
         return average_power[dest.army_count] + DEST_SUPPORT * sum(
             [average_power[i.army_count] for i in dest.neighbours if i.owner == dest.owner])
@@ -32,8 +32,8 @@ class AI:
         """
         # Constants
         SRC_SUPPORT = 0.05
-        DEST_SUPPORT = 0.125
-        average_power = [5, 18, 50]
+        DEST_SUPPORT = 0.15
+        average_power = [6, 17, 45]
         # Calculate powers of both sides
         source_power = src.army_count + SRC_SUPPORT * sum(
             [i.army_count for i in src.neighbours if i.owner == self.__world.my_id])
