@@ -33,7 +33,7 @@ class AI:
         # Constants
         SRC_SUPPORT = 0.05
         DEST_SUPPORT = 0.125
-        average_power = [5, 20, 45]
+        average_power = [7, 18, 50]
         # Calculate powers of both sides
         source_power = src.army_count + SRC_SUPPORT * sum(
             [i.army_count for i in src.neighbours if i.owner == self.__world.my_id])
