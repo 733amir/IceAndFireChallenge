@@ -40,6 +40,8 @@ class Controller():
         Thread(target=run, daemon=True).start()
 
     def terminate(self):
+        print('$', self.world.total_turns, self.world.turn_number,
+              len(self.world.my_nodes), len(self.world.opponent_nodes), '$')
         print("finished!")
         self.network.close()
         self.sending_flag = False
