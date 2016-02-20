@@ -18,7 +18,7 @@ class AI:
         self.__first_attack = False
 
     def __attacking_power(self, dest):
-        DEST_SUPPORT = 0.15
+        DEST_SUPPORT = 0.125
         average_power = [10, 30, 50]
         return average_power[dest.army_count] + DEST_SUPPORT * sum(
             [average_power[i.army_count] for i in dest.neighbours if i.owner == dest.owner])
@@ -32,15 +32,15 @@ class AI:
         """
         # Constants
         SRC_SUPPORT = 0.05
-        DEST_SUPPORT = 0.15
-        average_power = [6, 17, 45]
+        DEST_SUPPORT = 0.11
+        average_power = [5, 18, 45]
         # Calculate powers of both sides
         source_power = src.army_count + SRC_SUPPORT * sum(
             [i.army_count for i in src.neighbours if i.owner == self.__world.my_id])
         dest_power = average_power[dest.army_count] + DEST_SUPPORT * sum(
             [average_power[i.army_count] for i in dest.neighbours if i.owner == 1 - self.__world.my_id])
         # Return
-        return source_power - dest_power
+        return source_power - dest_power - dest.attacked_power
 
     def __set_all_need(self):  # Added by Geamny
         """Calculate and set `need` attribute of node objects."""
@@ -107,7 +107,7 @@ are not all safe."""
 
             # Finding empty or enemy neighbours of `edge_node`
             empty_neighbours = [i for i in edge_node.neighbours if i.owner == -1]
-            enemy_neighbours = [i for i in edge_node.neighbours if i.owner == 1 - self.__world.my_id]
+            enemy_neighbours = [i for i in edge_node.neighbours if i.owner == 1 - self.__world.my_id and i.attacked_power < self.__attacking_power(i)]
 
             if len(enemy_neighbours):  # There is enemy, Attack
                 self.__first_attack = True
@@ -118,9 +118,14 @@ are not all safe."""
                 max_difference = max(power_difference_with_enemy_neighbours)
                 to_attack = enemy_neighbours[power_difference_with_enemy_neighbours.index(max_difference)]
 
-                power = min(edge_node.army_count, int(self.__attacking_power(to_attack)))
+                power = int(self.__attacking_power(to_attack)) - to_attack.attacked_power
+                if power > edge_node.army_count:
+                    power = edge_node.army_count
+                elif power < edge_node.army_count // 2:
+                    power = edge_node.army_count * 2 // 3
                 if max_difference > 0:  # If the best opportunity is a good opportunity
                     self.__world.move_army(edge_node, to_attack, power)
+                    to_attack.attacked_power += power
                 else:  # If even the best attacking opportunity is not good
                     energy_level = [0, 11, 31]
                     node_energy_level = 0
@@ -132,11 +137,13 @@ are not all safe."""
                     # power = edge_node.army_count - energy_level[node_energy_level]
                     if empty_neighbours:  # Send some power to empty neighbour
                         self.__world.move_army(edge_node, choice(empty_neighbours), power)
+                        to_attack.attacked_power += power
                     # elif len(enemy_neighbours) == len(edge_node.neighbours):  # If all of the neighbours are enemies
                     #     # Send all of your power
                     #     self.__world.move_army(edge_node, to_attack, edge_node.army_count)
                     else:
                         self.__world.move_army(edge_node, to_attack, power)
+                        to_attack.attacked_power += power
                     edge_node.need += self.__HELP_VALUE  # Wait for backup
 
             else:  # No enemy, Discover
@@ -147,9 +154,6 @@ are not all safe."""
 
                 # Sort empty neighbours by count of safe neighbours around it
                 more_neighbours = \
-                sorted(empty_neighbours_not_under_discover, key=lambda i: len(
-                    [j for j in i.neighbours if j.owner == self.__world.my_id or j in self.__under_discover_nodes]),
-                                         reverse=True) if edge_node.need > 100 else \
                 sorted(empty_neighbours_not_under_discover, key=lambda i: len(
                     [j for j in i.neighbours if j.owner == -1]), reverse=True)
 
