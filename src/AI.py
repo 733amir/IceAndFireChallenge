@@ -20,8 +20,10 @@ class AI:
     def __attacking_power(self, dest):
         DEST_SUPPORT = 0.125
         average_power = [10, 30, 50]
-        return average_power[dest.army_count] + DEST_SUPPORT * sum(
+        p = average_power[dest.army_count] + DEST_SUPPORT * sum(
             [average_power[i.army_count] for i in dest.neighbours if i.owner == dest.owner])
+        # print(dest, p)
+        return p
 
     def __power_difference(self, src, dest):
         """
@@ -40,7 +42,7 @@ class AI:
         dest_power = average_power[dest.army_count] + DEST_SUPPORT * sum(
             [average_power[i.army_count] for i in dest.neighbours if i.owner == 1 - self.__world.my_id])
         # Return
-        return source_power - dest_power - dest.attacked_power
+        return source_power - dest_power + dest.attacked_power
 
     def __set_all_need(self):  # Added by Geamny
         """Calculate and set `need` attribute of node objects."""
@@ -97,14 +99,18 @@ are not all safe."""
 
         # Default value of `edge_nodes` is `self.__edge_nodes`
         if edge_nodes is None:
-            edge_nodes = self.__edge_nodes
+            edge_nodes = self.__edge_nodes[:]
 
         # Sort edge nodes with count of empty or enemy neighbours
-        edge_nodes.sort(key=lambda i: len([j for j in i.neighbours if j.owner != self.__world.my_id]))
+        # edge_nodes.sort(key=lambda i: len([j for j in i.neighbours if j.owner != self.__world.my_id]))
 
         # Decision for each edge node
-        for edge_node in edge_nodes:
+        while edge_nodes:
 
+            edge_nodes.sort(key=lambda i: (len([j for j in i.neighbours if j.owner == 1 - self.__world.my_id]),
+                                           len([j for j in i.neighbours if j.owner == -1])))
+
+            edge_node = edge_nodes[0]
             # Finding empty or enemy neighbours of `edge_node`
             empty_neighbours = [i for i in edge_node.neighbours if i.owner == -1]
             enemy_neighbours = [i for i in edge_node.neighbours if i.owner == 1 - self.__world.my_id and i.attacked_power < self.__attacking_power(i)]
@@ -113,16 +119,46 @@ are not all safe."""
                 self.__first_attack = True
 
                 # Find the best opportunity to attack to
-                power_difference_with_enemy_neighbours = [self.__power_difference(edge_node, i) for i in
-                                                          enemy_neighbours]
-                max_difference = max(power_difference_with_enemy_neighbours)
-                to_attack = enemy_neighbours[power_difference_with_enemy_neighbours.index(max_difference)]
+                # power_difference_with_enemy_neighbours = [self.__power_difference(edge_node, i) for i in
+                #                                           enemy_neighbours if i.attacked_power < self.__attacking_power(i)]
+                # power_difference_with_enemy_neighbours = [i for i in power_difference_with_enemy_neighbours if i > 0]
+                #
+                # max_difference = 0
+                # if power_difference_with_enemy_neighbours:
+                #     enemies_with_max_degree =
+                #     max_difference = min(power_difference_with_enemy_neighbours)
+                # else:
+                #     power_difference_with_enemy_neighbours = [self.__power_difference(edge_node, i) for i in
+                #                                           enemy_neighbours if i.attacked_power < self.__attacking_power(i)]
+                #     max_difference = max(power_difference_with_enemy_neighbours)
+                #
+                # to_attack = enemy_neighbours[power_difference_with_enemy_neighbours.index(max_difference)]
+
+                power_difference = [(self.__power_difference(edge_node, i), i)
+                                    for i in enemy_neighbours if i.attacked_power < int(self.__attacking_power(i))]
+
+                if not power_difference:
+                    power_difference = [(self.__power_difference(edge_node, i), i)
+                                         for i in enemy_neighbours]
+
+                can_attack = [i for p, i in power_difference if p > 0]
+                to_attack = None
+                max_difference = None
+                if can_attack:
+                    to_attack = sorted(can_attack, key=lambda i: len(i.neighbours), reverse=True)[0]
+                    max_difference = 1
+                else:
+                    powers = [p for p, i in power_difference]
+                    max_diff = powers.index(max(powers))
+                    max_difference = max(powers)
+                    to_attack = power_difference[max_diff][1]
 
                 power = int(self.__attacking_power(to_attack)) - to_attack.attacked_power
+                # print(self.__world.turn_number, to_attack, power, to_attack.attacked_power)
                 if power > edge_node.army_count:
                     power = edge_node.army_count
-                elif power < edge_node.army_count // 2:
-                    power = edge_node.army_count * 2 // 3
+                elif power < edge_node.army_count // 3:
+                    power = edge_node.army_count // 3
                 if max_difference > 0:  # If the best opportunity is a good opportunity
                     self.__world.move_army(edge_node, to_attack, power)
                     to_attack.attacked_power += power
@@ -136,7 +172,12 @@ are not all safe."""
 
                     # power = edge_node.army_count - energy_level[node_energy_level]
                     if empty_neighbours:  # Send some power to empty neighbour
-                        self.__world.move_army(edge_node, choice(empty_neighbours), power)
+                        _ = [i for i in empty_neighbours if i not in self.__under_discover_nodes]
+                        if not _:
+                            _ = empty_neighbours
+                        to_go = choice(_) # TODO Not random
+                        self.__under_discover_nodes.append(to_go)
+                        self.__world.move_army(edge_node, to_go, power) # TODO 1 or something else
                         to_attack.attacked_power += power
                     # elif len(enemy_neighbours) == len(edge_node.neighbours):  # If all of the neighbours are enemies
                     #     # Send all of your power
@@ -157,6 +198,23 @@ are not all safe."""
                 sorted(empty_neighbours_not_under_discover, key=lambda i: len(
                     [j for j in i.neighbours if j.owner == -1]), reverse=True)
 
+                # energy_level = [0, 11, 31]
+                # node_energy_level = 0
+                # for level in range(len(energy_level)):
+                #     if energy_level[level] > edge_node.army_count:
+                #         break
+                #     node_energy_level = level
+                #
+                # key = None
+                # if node_energy_level == 2:
+                #     key = lambda i: i.need
+                # elif node_energy_level == 1:
+                #     key = lambda i: -len(i.neighbours)
+                # elif node_energy_level == 0:
+                #     key = lambda i: -i.need
+                #
+                # more_neighbours = sorted(empty_neighbours_not_under_discover, key=key)
+
                 if not more_neighbours:  # All neighbours under discover
                     empty_neighbours_sorted_by_need = sorted(edge_node.neighbours, key=lambda i: i.need)
                     self.__under_discover_nodes.append(empty_neighbours_sorted_by_need[0])
@@ -170,6 +228,8 @@ are not all safe."""
                         self.__world.move_army(edge_node, more_neighbours[0], 1)
                     else:
                         self.__world.move_army(edge_node, more_neighbours[0], edge_node.army_count)
+
+            del edge_nodes[0]
 
 
     def __enemy_is_there(self, node, src_node=None):
@@ -211,3 +271,7 @@ are not all safe."""
         ### Decision making
         self.__decision_for_edge_nodes()
         self.__decision_for_inner_nodes()
+
+        # print(world.low_army_bound, world.medium_army_bount)
+        # for i in self.__world.opponent_nodes:
+        #     print(i)
